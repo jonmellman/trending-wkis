@@ -1,3 +1,32 @@
+function getTrendingWikiArticles() {
+	var props = {
+		page: 'Wikipedia:5000',
+		action: 'parse',
+		prop: 'text'
+	};
+
+	return wikiClient(props);
+}
+
+/*
+	Basic wikipedia JS API
+*/
+function wikiClient(props) {
+	var url = 'https://en.wikipedia.org/w/api.php?';
+	props.format = 'json';
+	props.redirects = true;
+
+	var queries = [];
+	for (var key in props) {
+		queries.push(key + '=' + props[key]);
+	}
+	url += queries.join('&');
+
+	return new Promise(function(resolve) {
+		getJSON(url, resolve);
+	});
+}
+
 /*
 	Basic JSONP implementation
 */
@@ -20,36 +49,6 @@ function getJSON(url, callback) {
 	head.appendChild(newScript);
 }
 
-/*
-	Basic wikipedia JS API
-*/
-function wikiClient(props, callback) {
-	var url = 'https://en.wikipedia.org/w/api.php?';
-	props.format = 'json';
-	props.redirects = true;
-
-	var queries = [];
-	for (var key in props) {
-		queries.push(key + '=' + props[key]);
-	}
-	url += queries.join('&');
-
-	return getJSON(url, callback);
-}
-
-var props = {
-	page: 'Wikipedia:5000',
-	action: 'parse',
-	prop: 'text'
-};
-
-wikiClient(props, init);
-
-function init(data) {
-	json = processData(data);
-	console.log('got mah json!', json)
-}
-
 function processData(data) {
 	try {
 		var html = data.parse.text['*'];
@@ -63,10 +62,10 @@ function processData(data) {
 	dummyDOM.innerHTML = html;
 	var tableRows = dummyDOM.querySelectorAll('.wikitable tr');
 	var header = tableRows[0];
-	var body = Array.prototype.slice.call(tableRows, 1);
+	var tableRows = Array.prototype.slice.call(tableRows, 1);
 
 	var columnIndices = columnIndices(header);
-	return getArticleData(body, columnIndices);
+	return getArticleData(tableRows, columnIndices);
 
 
 	function columnIndices(header) {
@@ -82,10 +81,10 @@ function processData(data) {
 		return columnIndices;
 	}
 
-	function getArticleData(body, columnIndices) {
+	function getArticleData(tableRows, columnIndices) {
 		var ARTICLE_COL_INDEX = 1; // 0: Rank, 1: Article, etc.
-		var i = 0;
-		return body.map(function(row) {
+
+		return tableRows.map(function(row) {
 			var rowCellText = Array.prototype.map.call(row.querySelectorAll('td'), function(el) { return el.innerText });
 			
 			var articleLink = row.querySelector('td:nth-child(' + (ARTICLE_COL_INDEX + 1) +') a');
@@ -95,11 +94,63 @@ function processData(data) {
 			articleData.href = articleHref;
 			for (var index in columnIndices) {
 				var colName = columnIndices[index];
-				articleData[colName] = rowCellText[index];
+				articleData[colName] = rowCellText[index].replace(/[^0-9]/g, ''); // strip non-digit characters ?
 			}
-			i++;
+
 			return articleData;
-		});
+		}).slice(1, 101); // todo: remove
 	}
 }
 
+function d3graph(jsonData) {
+	if (!window.d3) {
+		return alert('Uh oh! D3 is not included on the page!');
+	}
+
+	var page = {
+		WIDTH: 600,
+		HEIGHT: 400
+	};
+
+	var margin = {
+		TOP: 30,
+		RIGHT: 30,
+		BOTTOM: 30,
+		LEFT: 30
+	};
+
+	var canvas = {
+		width: page.WIDTH - margin.LEFT - margin.RIGHT,
+		height: page.HEIGHT - margin.TOP - margin.BOTTOM
+	};
+
+	var x = d3.scale.linear()
+			.domain([0, jsonData.length])
+			.range([0, canvas.width]);
+	var y = d3.scale.linear()
+			.domain([jsonData[0].Views, 0])
+			.range([0, canvas.height]);
+
+	var chart =
+		d3.select('#content')
+			.attr('width', page.WIDTH)
+			.attr('height', page.HEIGHT)
+		.append('g')
+			.attr('transform', 'translate(' + margin.LEFT + ',' + margin.TOP + ')');
+
+	var bar = chart.selectAll('.bar')
+		.data(jsonData);
+
+	bar.enter().append('rect')
+		.attr('class', 'bar')
+		.attr('x', function(d, i) { return x(i); })
+		.attr('width', 5) // TODO: do this with scale fn
+		.attr('y', function(d) { return y(d.Views); })
+		.attr('height', function(d) { return canvas.height - y(d.Views) })
+		.attr('fill', 'steelblue')
+}
+
+
+getTrendingWikiArticles()
+	.then(processData)
+	.then(d3graph)

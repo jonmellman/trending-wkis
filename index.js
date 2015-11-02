@@ -35,7 +35,7 @@ function getJSON(url, callback) {
 
 	var callbackName = '__fn' + Date.now();
 	window[callbackName] = function() {
-		delete window[callbackName]; //
+		delete window[callbackName];
 		head.removeChild(newScript);
 		callback.apply(null, arguments);
 	};
@@ -94,7 +94,10 @@ function processData(data) {
 			articleData.href = articleHref;
 			for (var index in columnIndices) {
 				var colName = columnIndices[index];
-				articleData[colName] = rowCellText[index].replace(/[^0-9]/g, ''); // strip non-digit characters ?
+				
+				articleData[colName] = parseInt(index) === ARTICLE_COL_INDEX ?
+					articleData[colName] = rowCellText[index] :
+					articleData[colName] = rowCellText[index].replace(/[^0-9]/g, ''); // strip non-digit characters ?
 			}
 
 			return articleData;
@@ -131,6 +134,7 @@ function d3graph(jsonData) {
 			.domain([jsonData[0].Views, 0])
 			.range([0, canvas.height]);
 
+
 	var chart =
 		d3.select('#content')
 			.attr('width', page.WIDTH)
@@ -141,6 +145,19 @@ function d3graph(jsonData) {
 	var bar = chart.selectAll('.bar')
 		.data(jsonData);
 
+	var xAxisScale = d3.scale.ordinal()
+			.domain(jsonData.map(function(d) { return d.Article; }))
+			.rangePoints([0, canvas.width]);
+
+	var xAxis = d3.svg.axis()
+	    .scale(xAxisScale)
+	    .orient("bottom");
+
+	chart.append("g")
+	    .attr("class", "x axis")
+	    .attr("transform", "translate(0," + canvas.height + ")")
+	    .call(xAxis);
+
 	bar.enter().append('rect')
 		.attr('class', 'bar')
 		.attr('x', function(d, i) { return x(i); })
@@ -148,6 +165,21 @@ function d3graph(jsonData) {
 		.attr('y', function(d) { return y(d.Views); })
 		.attr('height', function(d) { return canvas.height - y(d.Views) })
 		.attr('fill', 'steelblue')
+		.on('mouseover', barMouseOver)
+		.on('mouseout', barMouseOut);
+
+	function barMouseOver(d, x) {
+		var bar = d3.select(this);
+		bar.attr('fill', 'red');
+		d3.select('.x.axis .tick:nth-child(' + x + ')').style('display', 'block');
+
+	}
+
+	function barMouseOut(d, x) {
+		var bar = d3.select(this);
+		bar.attr('fill', 'steelblue');
+		d3.select('.x.axis .tick:nth-child(' + x + ')').style('display', 'none');
+	}
 }
 
 

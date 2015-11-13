@@ -110,6 +110,8 @@ function d3graph(jsonData) {
 		return alert('Uh oh! D3 is not included on the page!');
 	}
 
+	window.jsonData = jsonData; // debug code
+
 	var page = {
 		WIDTH: 600,
 		HEIGHT: 400
@@ -122,6 +124,7 @@ function d3graph(jsonData) {
 		LEFT: 30
 	};
 
+	// define canvas using page and margin sizes
 	var canvas = {
 		width: page.WIDTH - margin.LEFT - margin.RIGHT,
 		height: page.HEIGHT - margin.TOP - margin.BOTTOM
@@ -135,6 +138,7 @@ function d3graph(jsonData) {
 			.range([0, canvas.height]);
 
 
+	// add our chart group inside the margins
 	var chart =
 		d3.select('#content')
 			.attr('width', page.WIDTH)
@@ -142,44 +146,66 @@ function d3graph(jsonData) {
 		.append('g')
 			.attr('transform', 'translate(' + margin.LEFT + ',' + margin.TOP + ')');
 
+
+	// add our data
 	var bar = chart.selectAll('.bar')
 		.data(jsonData);
 
+	// set up our x axis	
 	var xAxisScale = d3.scale.ordinal()
-			.domain(jsonData.map(function(d) { return d.Article; }))
-			.rangePoints([0, canvas.width]);
-
+		.domain(jsonData.map(function(d) { return d.Article; }))
+		.rangeBands([0, canvas.width]);
 	var xAxis = d3.svg.axis()
 	    .scale(xAxisScale)
 	    .orient("bottom");
-
 	chart.append("g")
 	    .attr("class", "x axis")
 	    .attr("transform", "translate(0," + canvas.height + ")")
 	    .call(xAxis);
 
+	window.xAxisScale = xAxisScale;
+
 	bar.enter().append('rect')
 		.attr('class', 'bar')
+		.attr('fill', 'steelblue')
+		// position
 		.attr('x', function(d, i) { return x(i); })
 		.attr('width', 5) // TODO: do this with scale fn
 		.attr('y', function(d) { return y(d.Views); })
 		.attr('height', function(d) { return canvas.height - y(d.Views) })
-		.attr('fill', 'steelblue')
+		// mouse events
 		.on('mouseover', barMouseOver)
+		.on('click', barClick)
 		.on('mouseout', barMouseOut);
 
 	function barMouseOver(d, x) {
 		var bar = d3.select(this);
 		bar.attr('fill', 'red');
-		d3.select('.x.axis .tick:nth-child(' + x + ')').style('display', 'block');
 
+		var n = x + 1; // CSS is 1-indexed
+		d3.select('.x.axis .tick:nth-child(' + n + ')').style('display', 'block');
+	}
+
+	function barClick(d, x) {
+		openInNewTab('https://wikipedia.org/' + d.href);
 	}
 
 	function barMouseOut(d, x) {
 		var bar = d3.select(this);
 		bar.attr('fill', 'steelblue');
-		d3.select('.x.axis .tick:nth-child(' + x + ')').style('display', 'none');
+		
+		var n = x + 1; // CSS is 1-indexed
+		d3.select('.x.axis .tick:nth-child(' + n + ')').style('display', 'none');
 	}
+
+	function openInNewTab(href) {
+		var a = document.createElement('a');
+		a.setAttribute('target', '_blank');
+		a.setAttribute('href', href);
+		a.click();
+		a.remove();
+	}
+
 }
 
 

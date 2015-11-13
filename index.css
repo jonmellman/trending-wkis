@@ -16,3 +16,7 @@
 .x.axis .tick {
 	display: none;
 }
+
+.bar {
+	cursor: pointer;
+}

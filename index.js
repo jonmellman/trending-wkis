@@ -113,7 +113,7 @@ function d3graph(jsonData) {
 	window.jsonData = jsonData; // debug code
 
 	var page = {
-		WIDTH: 600,
+		WIDTH: 800,
 		HEIGHT: 400
 	};
 
@@ -121,7 +121,7 @@ function d3graph(jsonData) {
 		TOP: 30,
 		RIGHT: 30,
 		BOTTOM: 30,
-		LEFT: 30
+		LEFT: 100
 	};
 
 	// define canvas using page and margin sizes
@@ -131,8 +131,8 @@ function d3graph(jsonData) {
 	};
 
 	var x = d3.scale.ordinal()
-		.domain(jsonData.map(function(d, i) { return d.Article; }))
-		.rangeRoundBands([0, canvas.width]);
+		.domain(jsonData.map(function(d) { return d.Article; }))
+		.rangeBands([0, canvas.width], .1, 1);
 	var y = d3.scale.linear()
 		.domain([jsonData[0].Views, 0])
 		.range([0, canvas.height]);
@@ -175,7 +175,7 @@ function d3graph(jsonData) {
 		.attr('fill', 'steelblue')
 		// position
 		.attr('x', function(d) { return x(d.Article); })
-		.attr('width', x.rangeBand()) // TODO: do this with scale fn
+		.attr('width', x.rangeBand())
 		.attr('y', function(d) { return y(d.Views); })
 		.attr('height', function(d) { return canvas.height - y(d.Views) })
 		// mouse events
@@ -192,7 +192,7 @@ function d3graph(jsonData) {
 	}
 
 	function barClick(d, x) {
-		openInNewTab('https://wikipedia.org/' + d.href);
+		window.open('https://wikipedia.org/' + d.href, '_target');
 	}
 
 	function barMouseOut(d, x) {
@@ -202,15 +202,6 @@ function d3graph(jsonData) {
 		var n = x + 1; // CSS is 1-indexed
 		d3.select('.x.axis .tick:nth-child(' + n + ')').style('display', 'none');
 	}
-
-	function openInNewTab(href) {
-		var a = document.createElement('a');
-		a.setAttribute('target', '_blank');
-		a.setAttribute('href', href);
-		a.click();
-		a.remove();
-	}
-
 }
 
 

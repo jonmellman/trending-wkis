@@ -17,6 +17,10 @@
 	display: none;
 }
 
+.y.axis .domain {
+	display: none;
+}
+
 .bar {
 	cursor: pointer;
 }

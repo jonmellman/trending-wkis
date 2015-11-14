@@ -119,7 +119,7 @@ function d3graph(jsonData) {
 
 	var margin = {
 		TOP: 30,
-		RIGHT: 30,
+		RIGHT: 0,
 		BOTTOM: 30,
 		LEFT: 100
 	};
@@ -153,6 +153,15 @@ function d3graph(jsonData) {
 	var bar = chart.selectAll('.bar')
 		.data(jsonData);
 
+	// set up our title
+	chart.append("text")
+		.attr("x", canvas.width / 2)
+		.attr("y", 0 - (margin.TOP / 2))
+		.attr("text-anchor", "middle")
+		.attr("class", "title")
+		.text("This Week's Trending Wikipedia Articles");
+
+
 	// set up our x axis	
 	var xAxis = d3.svg.axis()
 	    .scale(x)
@@ -169,6 +178,7 @@ function d3graph(jsonData) {
 	chart.append("g")
 		.attr("class", "y axis")
 		.call(yAxis)
+		// axis label
 		.append("text")
 		  .attr("transform", "rotate(-90)")
 		  .attr("dy", ".71em")

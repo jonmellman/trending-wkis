@@ -28,7 +28,7 @@
   display: none;
 }
 
-.x.axis .tick {
+.y.axis .tick line {
 	display: none;
 }
 
@@ -44,4 +44,10 @@
 /* bar */
 .bar {
 	cursor: pointer;
+}
+
+.label-count {
+	fill: white;
+	font-size: 12px;
+	text-anchor: end;
 }

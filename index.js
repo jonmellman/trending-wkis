@@ -60,7 +60,7 @@ function processData(data) {
 		var html = data.parse.text['*'];
 	}
 	catch (e) {
-		console.error('Uh oh, API return format changed!');
+		console.error('Unexpected data format!', data);
 		return;
 	}
 
@@ -116,18 +116,16 @@ function d3graph(jsonData) {
 		return alert('Uh oh! D3 is not included on the page!');
 	}
 
-	window.jsonData = jsonData; // debug code
-
 	var page = {
 		WIDTH: 800,
-		HEIGHT: 400
+		HEIGHT: 600
 	};
 
 	var margin = {
 		TOP: 30,
-		RIGHT: 0,
+		RIGHT: 30,
 		BOTTOM: 30,
-		LEFT: 100
+		LEFT: 30
 	};
 
 	// define canvas using page and margin sizes
@@ -136,15 +134,12 @@ function d3graph(jsonData) {
 		height: page.HEIGHT - margin.TOP - margin.BOTTOM
 	};
 
-	var x = d3.scale.ordinal()
-		.domain(jsonData.map(function(d) { return d.Article; }))
-		.rangeBands([0, canvas.width], .1, 1);
-	var y = d3.scale.linear()
+	var x = d3.scale.linear()
 		.domain([jsonData[0].Views, 0])
-		.range([0, canvas.height]);
-
-
-		window.x = x;
+		.range([0, canvas.width]);
+	var y = d3.scale.ordinal()
+		.domain(jsonData.map(function(d) { return d.Article; }))
+		.rangeBands([0, canvas.height], .1, 1);
 
 	// add our chart group inside the margins
 	var chart =
@@ -154,11 +149,6 @@ function d3graph(jsonData) {
 		.append('g')
 			.attr('transform', 'translate(' + margin.LEFT + ',' + margin.TOP + ')');
 
-
-	// add our data
-	var bar = chart.selectAll('.bar')
-		.data(jsonData);
-
 	// set up our title
 	chart.append("text")
 		.attr("x", canvas.width / 2)
@@ -166,65 +156,61 @@ function d3graph(jsonData) {
 		.attr("text-anchor", "middle")
 		.attr("class", "title")
 		.text("This Week's Trending Wikipedia Articles");
+	
+	// add our data
+	var bar = chart.selectAll('.bar')
+		.data(jsonData);
 
-
-	// set up our x axis	
-	var xAxis = d3.svg.axis()
-	    .scale(x)
-	    .orient("bottom");
-	chart.append("g")
-	    .attr("class", "x axis")
-	    .attr("transform", "translate(0," + canvas.height + ")")
-	    .call(xAxis);
-
-	// set up our y axis
-	var yAxis = d3.svg.axis()
-		.scale(y)
-		.orient("left");
-	chart.append("g")
-		.attr("class", "y axis")
-		.call(yAxis)
-		// axis label
-		.append("text")
-		  .attr("transform", "rotate(-90)")
-		  .attr("dy", ".71em")
-		  .attr("y", 10 - margin.LEFT)
-		  .attr("x", 0 - (canvas.height / 2))
-		  .attr("class", "label")
-		  .style("text-anchor", "middle")
-		  .text("Page Views");
-
+	// set up our bars
 	bar.enter().append('rect')
 		.attr('class', 'bar')
 		.attr('fill', 'steelblue')
 		// position
-		.attr('x', function(d) { return x(d.Article); })
-		.attr('width', x.rangeBand())
-		.attr('y', function(d) { return y(d.Views); })
-		.attr('height', function(d) { return canvas.height - y(d.Views) })
+		.attr('x', 0)
+		.attr('width', function(d) { return canvas.width - x(d.Views); })
+		.attr('y', function(d) { return y(d.Article); })
+		.attr('height', y.rangeBand())
 		// mouse events
 		.on('mouseover', barMouseOver)
 		.on('click', barClick)
 		.on('mouseout', barMouseOut);
 
-	function barMouseOver(d, x) {
+	// set up our y axis
+	var yAxis = d3.svg.axis()
+		.scale(y)
+		.orient("left")
+	chart.append("g")
+		.attr("class", "y axis")
+		.call(yAxis)
+		.selectAll("text")
+			.attr("x", "10")
+			.style("text-anchor", "start")
+			.style("fill", "white");
+
+
+	var labelCountFormat = d3.format(",");
+	chart.selectAll(".label-count")
+		.data(jsonData).enter()
+		.append('text')
+			.attr('class', 'label-count')
+			.attr('x', function(d) { return canvas.width - x(d.Views); })
+			.attr('y', function(d) { return y(d.Article) + (y.rangeBand() / 2) })
+			.attr("dx", -5)
+	  		.attr("dy", ".36em")
+			.text(function(d) { return labelCountFormat(d.Views); });
+
+	function barMouseOver() {
 		var bar = d3.select(this);
 		bar.attr('fill', 'brown');
-
-		var n = x + 1; // CSS is 1-indexed
-		d3.select('.x.axis .tick:nth-child(' + n + ')').style('display', 'block');
 	}
 
-	function barClick(d, x) {
+	function barClick(d) {
 		window.open('https://wikipedia.org/' + d.href, '_target');
 	}
 
-	function barMouseOut(d, x) {
+	function barMouseOut() {
 		var bar = d3.select(this);
 		bar.attr('fill', 'steelblue');
-		
-		var n = x + 1; // CSS is 1-indexed
-		d3.select('.x.axis .tick:nth-child(' + n + ')').style('display', 'none');
 	}
 }
 

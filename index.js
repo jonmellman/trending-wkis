@@ -121,7 +121,7 @@ function d3graph(jsonData) {
 		TOP: 30,
 		RIGHT: 30,
 		BOTTOM: 30,
-		LEFT: 80
+		LEFT: 30
 	};
 
 	// define canvas using page and margin sizes
@@ -130,13 +130,15 @@ function d3graph(jsonData) {
 		height: page.HEIGHT - margin.TOP - margin.BOTTOM
 	};
 
-	var x = d3.scale.linear()
-		.domain([0, jsonData.length])
-		.range([0, canvas.width]);
+	var x = d3.scale.ordinal()
+		.domain(jsonData.map(function(d, i) { return d.Article; }))
+		.rangeRoundBands([0, canvas.width]);
 	var y = d3.scale.linear()
 		.domain([jsonData[0].Views, 0])
 		.range([0, canvas.height]);
 
+
+		window.x = x;
 
 	// add our chart group inside the margins
 	var chart =
@@ -152,11 +154,8 @@ function d3graph(jsonData) {
 		.data(jsonData);
 
 	// set up our x axis	
-	var xAxisScale = d3.scale.ordinal()
-		.domain(jsonData.map(function(d) { return d.Article; }))
-		.rangeBands([0, canvas.width]);
 	var xAxis = d3.svg.axis()
-	    .scale(xAxisScale)
+	    .scale(x)
 	    .orient("bottom");
 	chart.append("g")
 	    .attr("class", "x axis")
@@ -164,11 +163,8 @@ function d3graph(jsonData) {
 	    .call(xAxis);
 
 	// set up our y axis
-	var yAxisScale = d3.scale.linear()
-		.domain(d3.extent(jsonData, function(d) { return parseInt(d.Views); }))
-		.range([canvas.height, 0]);
 	var yAxis = d3.svg.axis()
-		.scale(yAxisScale)
+		.scale(y)
 		.orient("left");
 	chart.append("g")
 		.attr("class", "y axis")
@@ -178,8 +174,8 @@ function d3graph(jsonData) {
 		.attr('class', 'bar')
 		.attr('fill', 'steelblue')
 		// position
-		.attr('x', function(d, i) { return x(i); })
-		.attr('width', 5) // TODO: do this with scale fn
+		.attr('x', function(d) { return x(d.Article); })
+		.attr('width', x.rangeBand()) // TODO: do this with scale fn
 		.attr('y', function(d) { return y(d.Views); })
 		.attr('height', function(d) { return canvas.height - y(d.Views) })
 		// mouse events

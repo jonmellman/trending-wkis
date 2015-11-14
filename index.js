@@ -107,7 +107,7 @@ function processData(data) {
 			}
 
 			return articleData;
-		}).slice(1, 101); // todo: remove
+		}).slice(1, 21); // todo: remove
 	}
 }
 

@@ -168,7 +168,15 @@ function d3graph(jsonData) {
 		.orient("left");
 	chart.append("g")
 		.attr("class", "y axis")
-		.call(yAxis);
+		.call(yAxis)
+		.append("text")
+		  .attr("transform", "rotate(-90)")
+		  .attr("dy", ".71em")
+		  .attr("y", 10 - margin.LEFT)
+		  .attr("x", 0 - (canvas.height / 2))
+		  .attr("class", "label")
+		  .style("text-anchor", "middle")
+		  .text("Page Views");
 
 	bar.enter().append('rect')
 		.attr('class', 'bar')

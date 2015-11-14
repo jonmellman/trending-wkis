@@ -1,5 +1,14 @@
-.axis text {
-  font: 10px sans-serif;
+* {
+	font-family: 'Roboto', sans-serif;
+	font-weight: 300;
+}
+
+.y.axis text {
+  font-size: 10px;
+}
+
+.x.axis text {
+	font-size: 14px;
 }
 
 .axis path,
@@ -19,6 +28,10 @@
 
 .y.axis .domain {
 	display: none;
+}
+
+.y.axis .label {
+	font-size: 16px;
 }
 
 .bar {

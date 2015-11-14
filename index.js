@@ -121,7 +121,7 @@ function d3graph(jsonData) {
 		TOP: 30,
 		RIGHT: 30,
 		BOTTOM: 30,
-		LEFT: 30
+		LEFT: 80
 	};
 
 	// define canvas using page and margin sizes
@@ -131,11 +131,11 @@ function d3graph(jsonData) {
 	};
 
 	var x = d3.scale.linear()
-			.domain([0, jsonData.length])
-			.range([0, canvas.width]);
+		.domain([0, jsonData.length])
+		.range([0, canvas.width]);
 	var y = d3.scale.linear()
-			.domain([jsonData[0].Views, 0])
-			.range([0, canvas.height]);
+		.domain([jsonData[0].Views, 0])
+		.range([0, canvas.height]);
 
 
 	// add our chart group inside the margins
@@ -163,7 +163,16 @@ function d3graph(jsonData) {
 	    .attr("transform", "translate(0," + canvas.height + ")")
 	    .call(xAxis);
 
-	window.xAxisScale = xAxisScale;
+	// set up our y axis
+	var yAxisScale = d3.scale.linear()
+		.domain(d3.extent(jsonData, function(d) { return parseInt(d.Views); }))
+		.range([canvas.height, 0]);
+	var yAxis = d3.svg.axis()
+		.scale(yAxisScale)
+		.orient("left");
+	chart.append("g")
+		.attr("class", "y axis")
+		.call(yAxis);
 
 	bar.enter().append('rect')
 		.attr('class', 'bar')
@@ -180,7 +189,7 @@ function d3graph(jsonData) {
 
 	function barMouseOver(d, x) {
 		var bar = d3.select(this);
-		bar.attr('fill', 'red');
+		bar.attr('fill', 'brown');
 
 		var n = x + 1; // CSS is 1-indexed
 		d3.select('.x.axis .tick:nth-child(' + n + ')').style('display', 'block');

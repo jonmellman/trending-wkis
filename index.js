@@ -22,31 +22,37 @@ function wikiClient(props) {
 	}
 	url += queries.join('&');
 
-	return new Promise(function(resolve) {
-		getJSON(url, resolve);
-	});
+	return getJSONP(url);
 }
 
 /*
-	Basic JSONP implementation
+	Promise based JSONP implementation
 */
-function getJSON(url, callback) {
-	var head = document.getElementsByTagName('head')[0];
+function getJSONP(url) {
+	return new Promise(function(resolve) {
+		var head = document.getElementsByTagName('head')[0];
 
-	var callbackName = '__fn' + Date.now();
-	window[callbackName] = function() {
-		delete window[callbackName];
-		head.removeChild(newScript);
-		callback.apply(null, arguments);
-	};
-	
-	var src = url + ( url.includes('?') ? '&' : '?' );
-	src += 'callback=' + callbackName;
+		// create unique function name
+		var callbackName = '__fn' + Date.now();
+		window[callbackName] = function() {
+			// clean up after ourselves
+			delete window[callbackName];
+			head.removeChild(newScript);
+			
+			// pass results to the next promise
+			resolve.apply(null, arguments);
+		};
+		
+		// tell our target what function name to send
+		var src = url + ( url.includes('?') ? '&' : '?' );
+		src += 'callback=' + callbackName;
 
-	var newScript = document.createElement('script');
-	newScript.type = 'text/javascript';
-	newScript.src = src;
-	head.appendChild(newScript);
+		// add script to head
+		var newScript = document.createElement('script');
+		newScript.type = 'text/javascript';
+		newScript.src = src;
+		head.appendChild(newScript);
+	});
 }
 
 function processData(data) {

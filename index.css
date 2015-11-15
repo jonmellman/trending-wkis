@@ -6,6 +6,7 @@
 /* title */
 .title {
 	font-size: 18px;
+	fill: darkslategray;
 }
 
 /* axes */
@@ -17,15 +18,7 @@
 }
 
 .y.axis text {
-  font-size: 10px;
-}
-
-.x.axis text {
-	font-size: 14px;
-}
-
-.x.axis path {
-  display: none;
+  font-size: 11px;
 }
 
 .y.axis .tick line {
@@ -47,7 +40,7 @@
 }
 
 .label-count {
-	fill: white;
-	font-size: 12px;
-	text-anchor: end;
+	fill: darkslategray;
+	font-size: 11px;
+	text-anchor: start;
 }

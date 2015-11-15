@@ -146,13 +146,14 @@ function d3graph(jsonData) {
 		d3.select('#content')
 			.attr('width', page.WIDTH)
 			.attr('height', page.HEIGHT)
+			.style('overflow', 'visible')
 		.append('g')
 			.attr('transform', 'translate(' + margin.LEFT + ',' + margin.TOP + ')');
 
 	// set up our title
 	chart.append("text")
 		.attr("x", canvas.width / 2)
-		.attr("y", 0 - (margin.TOP / 2))
+		.attr("y", 0)
 		.attr("text-anchor", "middle")
 		.attr("class", "title")
 		.text("This Week's Trending Wikipedia Articles");
@@ -195,7 +196,7 @@ function d3graph(jsonData) {
 			.attr('class', 'label-count')
 			.attr('x', function(d) { return canvas.width - x(d.Views); })
 			.attr('y', function(d) { return y(d.Article) + (y.rangeBand() / 2) })
-			.attr("dx", -5)
+			.attr("dx", 5)
 	  		.attr("dy", ".36em")
 			.text(function(d) { return labelCountFormat(d.Views); });
 

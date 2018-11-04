@@ -38,11 +38,11 @@ function getJSONP(url) {
 			// clean up after ourselves
 			delete window[callbackName];
 			head.removeChild(newScript);
-			
+
 			// pass results to the next promise
 			resolve.apply(null, arguments);
 		};
-		
+
 		// tell our target what function name to send
 		var src = url + ( url.includes('?') ? '&' : '?' );
 		src += 'callback=' + callbackName;
@@ -76,8 +76,8 @@ function processData(data) {
 
 	function columnIndices(header) {
 		var columnIndices = {};
-		
-		var columnText = Array.prototype.map.call(header.querySelectorAll('th'), function(el) { return el.innerText });
+
+		var columnText = Array.prototype.map.call(header.querySelectorAll('th'), function(el) { return el.innerText.trim() });
 		columnText.forEach(function(text, i) {
 			if (text !== '') {
 				columnIndices[i] = text;
@@ -92,7 +92,7 @@ function processData(data) {
 
 		return tableRows.map(function(row) {
 			var rowCellText = Array.prototype.map.call(row.querySelectorAll('td'), function(el) { return el.innerText });
-			
+
 			var articleLink = row.querySelector('td:nth-child(' + (ARTICLE_COL_INDEX + 1) +') a');
 			var articleHref = articleLink && articleLink.getAttribute('href');
 
@@ -100,7 +100,7 @@ function processData(data) {
 			articleData.href = articleHref;
 			for (var index in columnIndices) {
 				var colName = columnIndices[index];
-				
+
 				articleData[colName] = parseInt(index) === ARTICLE_COL_INDEX ?
 					articleData[colName] = rowCellText[index] :
 					articleData[colName] = rowCellText[index].replace(/[^0-9]/g, ''); // strip non-digit characters ?
@@ -157,7 +157,7 @@ function d3graph(jsonData) {
 		.attr("text-anchor", "middle")
 		.attr("class", "title")
 		.text("This Week's Trending Wikipedia Articles");
-	
+
 	// add our data
 	var bar = chart.selectAll('.bar')
 		.data(jsonData);
@@ -215,7 +215,6 @@ function d3graph(jsonData) {
 	}
 }
 
-
 getTrendingWikiArticles()
 	.then(processData)
-	.then(d3graph)
+	.then(d3graph);

@@ -70,11 +70,11 @@ function processData(data) {
 	var header = tableRows[0];
 	var tableRows = Array.prototype.slice.call(tableRows, 1);
 
-	var columnIndices = columnIndices(header);
+	var columnIndices = extractColumnIndices(header);
 	return getArticleData(tableRows, columnIndices);
 
 
-	function columnIndices(header) {
+	function extractColumnIndices(header) {
 		var columnIndices = {};
 
 		var columnText = Array.prototype.map.call(header.querySelectorAll('th'), function(el) { return el.innerText.trim() });
@@ -104,10 +104,17 @@ function processData(data) {
 				articleData[colName] = parseInt(index) === ARTICLE_COL_INDEX ?
 					articleData[colName] = rowCellText[index] :
 					articleData[colName] = rowCellText[index].replace(/[^0-9]/g, ''); // strip non-digit characters ?
+
+				articleData[colName] = articleData[colName].trim();
 			}
 
 			return articleData;
-		}).slice(1, 21); // todo: remove
+		})
+			.filter(function(row) {
+				// Sometimes "-" is marked as trending. Ignore that and other non-articles.
+				return row.Article.length > 1;
+			})
+			.slice(1, 21);
 	}
 }
 
